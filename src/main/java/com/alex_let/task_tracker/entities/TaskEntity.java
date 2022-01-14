@@ -5,8 +5,8 @@ import lombok.experimental.FieldDefaults;
 
 import javax.persistence.*;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
-
 
 @Entity
 @Getter
@@ -27,11 +27,13 @@ public class TaskEntity
 
     Long ordinal; //номер для сортировки
 
+    @Builder.Default
     //по дефолту все поля @column
     Instant createdAt = Instant.now();
 
     String description;
 
     @OneToMany
-    List<TaskEntity> tasks;
+    @Builder.Default
+    List<TaskEntity> tasks = new ArrayList<>();
 }

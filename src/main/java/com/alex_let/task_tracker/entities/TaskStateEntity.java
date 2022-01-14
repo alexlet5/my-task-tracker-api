@@ -5,6 +5,7 @@ import lombok.experimental.FieldDefaults;
 
 import javax.persistence.*;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -19,19 +20,22 @@ public class TaskStateEntity
 {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    private Long id;
+    Long id;
 
     @Column(unique = true)
-    private String name;
+    String name;
 
-    private Long ordinal; //номер для сортировки
+    Long ordinal; //номер для сортировки
 
     //по дефолту все поля @column
-    private Instant createdAt = Instant.now();
-
-    private String description;
+    @Builder.Default
+    Instant createdAt = Instant.now();
 
     @OneToMany
-    private List<TaskEntity> tasks;
+    @Builder.Default
+    @JoinColumn(name = "task_state_id", referencedColumnName = "id")
+    //все tasks получат колонку task_state_id, возьмут значение из id отсюда^^^
+    //это связь многие ко многим, но без доп таблицы
+    List<TaskEntity> tasks = new ArrayList<>();
 
 }
