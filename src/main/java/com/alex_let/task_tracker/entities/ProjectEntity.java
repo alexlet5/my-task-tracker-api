@@ -32,7 +32,7 @@ public class ProjectEntity
     @Builder.Default
     Instant updatedAt = Instant.now();
 
-    @Builder.Default //не особо понятно
+    @Builder.Default //в билде если не указано иначе то дефалт будет то чему равно снизу
     @OneToMany
     @JoinColumn(name = "project_id", referencedColumnName = "id")
     //все task states получат колонку project_id, возьмут значение из id отсюда^^^

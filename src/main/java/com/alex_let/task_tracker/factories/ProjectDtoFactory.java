@@ -5,7 +5,7 @@ import com.alex_let.task_tracker.entities.ProjectEntity;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ProjectDtoFactory
+public class ProjectDtoFactory //псевдофабрика делающая дто из энтити
 {
     public ProjectDto makeProjectDto(ProjectEntity entity)
     {

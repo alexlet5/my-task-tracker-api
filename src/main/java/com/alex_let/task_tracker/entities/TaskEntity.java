@@ -22,18 +22,11 @@ public class TaskEntity
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     Long id;
 
-    @Column(unique = true)
     String name;
-
-    Long ordinal; //номер для сортировки
 
     @Builder.Default
     //по дефолту все поля @column
     Instant createdAt = Instant.now();
 
     String description;
-
-    @OneToMany
-    @Builder.Default
-    List<TaskEntity> tasks = new ArrayList<>();
 }

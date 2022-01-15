@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import java.time.Instant;
+import java.util.List;
 
 @Data
 //Generates getters for all fields, a useful toString method,
@@ -25,4 +26,6 @@ public class TaskStateDto
     @NonNull
     @JsonProperty("created_at")
     Instant createdAt = Instant.now();
+
+    @NonNull List<TaskDto> tasks;
 }

@@ -1,19 +1,18 @@
 package com.alex_let.task_tracker.factories;
 
-import com.alex_let.task_tracker.dto.TaskStateDto;
-import com.alex_let.task_tracker.entities.TaskStateEntity;
+import com.alex_let.task_tracker.dto.TaskDto;
+import com.alex_let.task_tracker.entities.TaskEntity;
 import org.springframework.stereotype.Component;
 
 @Component
-public class TaskDtoFactory
+public class TaskDtoFactory //псевдофабрика делающая дто из энтити
 {
-    public TaskStateDto makeTaskStateDto(TaskStateEntity entity)
+    public TaskDto makeTaskDto(TaskEntity entity)
     {
-        return TaskStateDto
+        return TaskDto
             .builder()
             .id(entity.getId())
             .name(entity.getName())
-            .ordinal(entity.getOrdinal())
             .createdAt(entity.getCreatedAt())
             .build();
     }

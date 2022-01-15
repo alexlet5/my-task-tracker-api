@@ -1,5 +1,6 @@
 package com.alex_let.task_tracker.controllers;
 
+import com.alex_let.task_tracker.controllers.helpers.ControllerHelper;
 import com.alex_let.task_tracker.dto.AckDto;
 import com.alex_let.task_tracker.entities.ProjectEntity;
 import com.alex_let.task_tracker.exceptions.BadRequestException;
@@ -7,6 +8,7 @@ import com.alex_let.task_tracker.dto.ProjectDto;
 import com.alex_let.task_tracker.exceptions.NotFoundException;
 import com.alex_let.task_tracker.factories.ProjectDtoFactory;
 import com.alex_let.task_tracker.repositories.ProjectRepository;
+import com.alex_let.task_tracker.repositories.TaskRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -25,9 +27,13 @@ import java.util.stream.Stream;
 @RestController
 public class ProjectController //создавать проекты, редактировать, удалять
 {
-    ProjectDtoFactory projectDtoFactory;
+    TaskRepository taskRepository;
 
     ProjectRepository projectRepository;
+
+    ProjectDtoFactory projectDtoFactory;
+
+    ControllerHelper controllerHelper;
 
     public static final String CREATE_PROJECT = "/api/projects";
     public static final String FETCH_PROJECTS = "/api/projects";
@@ -54,18 +60,18 @@ public class ProjectController //создавать проекты, редакт
     //принимать dto опасно из-за инъекций
     //если принимать dto, то делаем приватный класс consumer внутри контроллера?
     @PostMapping(CREATE_PROJECT)
-    public ProjectDto createProject(@RequestParam String name)
+    public ProjectDto createProject(@RequestParam String project_name)
     {
-        if(name.trim().isEmpty())
+        if(project_name.trim().isEmpty())
         { throw new BadRequestException("Name can't be empty");}
 
-        projectRepository.findByName(name).ifPresent(projectEntity ->
-        {throw new BadRequestException(String.format("Project \"%s\" already exists!", name));}  );
+        projectRepository.findByName(project_name).ifPresent(projectEntity ->
+        {throw new BadRequestException(String.format("Project \"%s\" already exists!", project_name));}  );
 
         //обычный save не генерирует idшник, транзакция не пройдет при неудачном методе
         ProjectEntity project = projectRepository.saveAndFlush(
             ProjectEntity.builder()
-                .name(name)
+                .name(project_name)
                 .build());
 
         return projectDtoFactory.makeProjectDto(project);
@@ -76,8 +82,8 @@ public class ProjectController //создавать проекты, редакт
         @RequestParam(value = "project_id", required = false) Optional<Long> optionalProjectId,
         @RequestParam(value = "project_name", required = false ) Optional<String> optionalProjectName)
     {
-
-        optionalProjectName = optionalProjectName.filter(projectName/*не особо понятно*/-> !projectName.trim().isEmpty());
+        //обрезаем лишние символы
+        optionalProjectName = optionalProjectName.filter(projectName-> !projectName.trim().isEmpty());
 
          //если не передали id, то создаем проект, если имя тоже не передали, то ошибка
         if(optionalProjectId.isEmpty() && optionalProjectName.isEmpty())
@@ -85,34 +91,46 @@ public class ProjectController //создавать проекты, редакт
             throw new BadRequestException("Project name can't be empty.");
         }
 
-        ProjectEntity project = optionalProjectId //получаем проджект или делаем новый
-            .map(this::getProjectOrThrowException)
+        ProjectEntity project = optionalProjectId //получаем проджект или делаем пустой новый
+            .map(controllerHelper::getProjectOrThrowException)
             .orElseGet(()-> ProjectEntity.builder().build());
 
+
         optionalProjectName
-            .ifPresent(projectName-> projectRepository
+            //если есть имя то
+            .ifPresent(projectName-> {
+                projectRepository
+                    //ищем по имени объект
                 .findByName(projectName)
                 .filter(anotherProject ->
+                    //если найденный объект имеет другой id то бросаем исключение, совпадения имен у нас недопустимы
+                    //иначе если объект с именем запроса имеет наш id то переименования не было, ошибки нет
                     !Objects.equals(anotherProject.getId(),project.getId()))
                 .ifPresent(anotherProject -> {
                     throw new BadRequestException(
-                        String.format("Project \"%s\" already exists.", projectName)
-                    );
-                }));
+                        String.format("Project \"%s\" already exists.", projectName));
+                });
+                //если все ок и нет эксепшена то переименовываем
+                /*if(project.getName() != projectName)
+                    project.setUpdatedAt(Instant.now()); //??даже если имя не поменялось апдейтим время??*/
+                project.setName(projectName);
+            });
 
+        //заменяем объект
         final ProjectEntity savedProject = projectRepository.saveAndFlush(project);
 
+        //если не было ошибок и проект сохранен то возвращаем дто из энтити
         return projectDtoFactory.makeProjectDto(savedProject);
     }
 
     @PatchMapping(EDIT_PROJECT)
     public ProjectDto editProject(@PathVariable("project_id") Long projectId,
-                                    @RequestParam String projectName)
+                                    @RequestParam(value = "project_name") String projectName)
     {
         if(projectName.trim().isEmpty())
         { throw new BadRequestException("Name can't be empty");}
 
-        ProjectEntity project = getProjectOrThrowException(projectId);
+        ProjectEntity project = controllerHelper.getProjectOrThrowException(projectId);
 
         projectRepository.findByName(projectName)
             .filter(anotherProject ->
@@ -132,23 +150,13 @@ public class ProjectController //создавать проекты, редакт
     @DeleteMapping(DELETE_PROJECT)
     public AckDto deleteProject(@PathVariable("project_id")Long projectId)
     {
-        getProjectOrThrowException(projectId);
+        controllerHelper.getProjectOrThrowException(projectId);
 
         projectRepository.deleteById(projectId);
 
         return AckDto.makeDefault(true);
     }
 
-    private ProjectEntity getProjectOrThrowException(Long projectId)
-    {
-        return projectRepository
-            .findById(projectId)
-            .orElseThrow(()->
-                new NotFoundException(
-                    String.format
-                    ("Project with \"%s\" id doesn't exists.", projectId)
-                )
-            );
-    }
+
 
 }
