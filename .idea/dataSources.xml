@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="my-task-tracker@localhost" uuid="ecc38336-118e-4221-9791-dcdc7dc1de0a">
+    <data-source source="LOCAL" name="my-task-tracker@localhost" uuid="10a46b11-d3a2-4f1c-bb7c-be3ddeb92dbf">
       <driver-ref>postgresql</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>
