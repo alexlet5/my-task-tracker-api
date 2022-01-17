@@ -30,6 +30,7 @@ public class ProjectEntity
     Instant createdAt = Instant.now();
 
     @Builder.Default
+    @Transient
     Instant updatedAt = Instant.now();
 
     @Builder.Default //в билде если не указано иначе то дефалт будет то чему равно снизу

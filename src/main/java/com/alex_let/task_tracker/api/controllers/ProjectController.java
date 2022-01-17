@@ -67,7 +67,7 @@ public class ProjectController
         projectRepository.findByName(project_name).ifPresent(projectEntity ->
         {throw new BadRequestException(String.format("Project \"%s\" already exists!", project_name));}  );
 
-        //обычный save не генерирует idшник, транзакция не пройдет при неудачном методе
+        //обычный save не генерирует idшник в ProjectEntity, дто построится без id -> фигня
         ProjectEntity project = projectRepository.saveAndFlush(
             ProjectEntity.builder()
                 .name(project_name)
